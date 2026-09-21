@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>警来帮 · 智慧寻物</title>
+<style>
+  :root{
+    --blue:#1a56db; --blue-d:#1040a8; --bg:#0f1f3d; --card:#ffffff;
+    --green:#0e9f6e; --orange:#d97706; --red:#dc2626; --ink:#1f2937; --muted:#6b7280;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:var(--ink)}
+  body{background:linear-gradient(160deg,#0f1f3d 0%,#1a3a6e 55%,#0f1f3d 100%);background-attachment:fixed}
+  .wrap{max-width:720px;margin:0 auto;padding:16px 14px 40px;min-height:100%}
+  header{color:#fff;text-align:center;padding:10px 0 14px}
+  header .logo{font-size:30px;font-weight:800;letter-spacing:2px}
+  header .sub{opacity:.85;font-size:14px;margin-top:6px}
+  .card{background:var(--card);border-radius:18px;padding:20px;box-shadow:0 12px 30px rgba(0,0,0,.25);margin-bottom:16px}
+  /* 模式选择 */
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px}
+  .mode{border:2px solid #e5e7eb;border-radius:16px;padding:18px 10px;text-align:center;background:#f9fafb;cursor:pointer;transition:.15s}
+  .mode .ic{font-size:38px}
+  .mode .t{font-weight:700;margin-top:8px;font-size:16px}
+  .mode .d{font-size:12px;color:var(--muted);margin-top:4px}
+  .mode:active{transform:scale(.97)}
+  .mode.lf{border-color:#bfdbfe} .mode.lf .ic{color:var(--blue)}
+  .mode.hd{border-color:#bbf7d0} .mode.hd .ic{color:var(--green)}
+  .mode.qry{border-color:#fde68a} .mode.qry .ic{color:var(--orange)}
+  /* 按钮 */
+  button{font-family:inherit;border:none;border-radius:12px;font-size:16px;font-weight:600;padding:14px 18px;cursor:pointer}
+  .btn-primary{background:var(--blue);color:#fff;width:100%}
+  .btn-primary:active{background:var(--blue-d)}
+  .btn-green{background:var(--green);color:#fff;width:100%}
+  .btn-orange{background:var(--orange);color:#fff;width:100%}
+  .btn-ghost{background:#f3f4f6;color:var(--ink)}
+  .row{display:flex;gap:10px}
+  .row>*{flex:1}
+  label{display:block;font-size:14px;font-weight:600;margin:14px 0 6px}
+  input,textarea,select{width:100%;padding:13px 14px;border:1.5px solid #d1d5db;border-radius:11px;font-size:16px;font-family:inherit;background:#fff}
+  input:focus,textarea:focus{outline:none;border-color:var(--blue)}
+  textarea{resize:vertical;min-height:64px}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  /* 语音 */
+  .mic{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:14px;background:#eef4ff;color:var(--blue);font-weight:700;border:2px dashed #93b4f5}
+  .mic.listening{background:#fee2e2;color:var(--red);border-color:#fca5a5;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{opacity:1}50%{opacity:.65}100%{opacity:1}}
+  .heard{margin-top:10px;padding:12px;background:#f9fafb;border-radius:10px;font-size:15px;min-height:20px;color:#374151}
+  .divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:13px}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:#e5e7eb}
+  /* 结果 */
+  .banner{border-radius:14px;padding:18px;text-align:center;margin-bottom:12px}
+  .banner.ok{background:#ecfdf5;color:#065f46;border:1.5px solid #a7f3d0}
+  .banner.warn{background:#fffbeb;color:#92400e;border:1.5px solid #fde68a}
+  .banner.err{background:#fef2f2;color:#991b1b;border:1.5px solid #fecaca}
+  .code{font-size:34px;font-weight:800;letter-spacing:6px;color:var(--blue);margin:8px 0;font-family:"Courier New",monospace}
+  .item{border:1.5px solid #e5e7eb;border-radius:12px;padding:13px;margin-bottom:10px}
+  .item .h{display:flex;justify-content:space-between;align-items:center}
+  .tag{font-size:12px;padding:3px 9px;border-radius:20px;font-weight:700}
+  .tag.lf{background:#dbeafe;color:#1e40af}
+  .tag.hd{background:#d1fae5;color:#065f46}
+  .tag.matched{background:#fef3c7;color:#92400e}
+  .tag.closed{background:#e5e7eb;color:#374151}
+  .item .meta{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6}
+  .back{margin-bottom:12px}
+  .muted{color:var(--muted);font-size:13px}
+  .foot{text-align:center;color:rgba(255,255,255,.6);font-size:12px;margin-top:18px}
+  .resetlink{color:rgba(255,255,255,.7);text-decoration:underline;cursor:pointer}
+  h3{margin:0 0 4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🛡️ 警来帮</div>
+    <div class="sub">智慧寻物服务台 · 丢失登记 / 拾获上交 / 查询取件</div>
+  </header>
+
+  <div id="app"></div>
+  <div class="foot">演示系统 · 数据保存在本浏览器 · <span class="resetlink" id="resetBtn">重置演示数据</span></div>
+</div>
+
+<script>
+/* ================= 数据层（localStorage） ================= */
+const KEY='jinglaibang_data_v1';
+function load(){ try{return JSON.parse(localStorage.getItem(KEY))||{records:[]};}catch(e){return {records:[]};} }
+function save(d){ localStorage.setItem(KEY, JSON.stringify(d)); }
+let DB = load();
+
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function genCode(n){ const s='0123456789'; let o=''; for(let i=0;i<n;i++) o+=s[Math.floor(Math.random()*s.length)]; return o; }
+function nowStr(){ const d=new Date(); const p=x=>String(x).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+
+/* 关键词匹配：物品名 + 地点 交集打分 */
+function similarity(a,b){
+  const ka=(a||'').split(/[\s,，、。.的了在]+/).filter(x=>x.length>=1);
+  const kb=new Set((b||'').split(/[\s,，、。.的了在]+/).filter(x=>x.length>=1));
+  let hit=0; ka.forEach(k=>{ if([...kb].some(x=>x.includes(k)||k.includes(x))) hit++; });
+  return ka.length? hit/ka.length : 0;
+}
+function findMatch(rec){
+  const opposite = rec.type==='LF'?'HD':'LF';
+  let best=null,bestScore=0;
+  DB.records.forEach(r=>{
+    if(r.type===opposite && r.status==='open'){
+      const s1=similarity(rec.itemName,r.itemName);
+      const s2=similarity(rec.location,r.location);
+      const score=s1*0.7+s2*0.3;
+      if(score>bestScore){bestScore=score;best=r;}
+    }
+  });
+  return bestScore>=0.5?{rec:best,score:bestScore}:null;
+}
+
+/* ================= 语音层（Web Speech API） ================= */
+const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+let recog=null;
+function speak(text){
+  try{
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate=1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function startListen(onText, onEnd){
+  if(!SR){ onEnd&&onEnd(); return false; }
+  if(recog) try{recog.stop();}catch(e){}
+  recog=new SR(); recog.lang='zh-CN'; recog.interimResults=false; recog.maxAlternatives=1;
+  recog.onresult=e=>{ const t=e.results[0][0].transcript; onText(t); };
+  recog.onerror=()=>{ onEnd&&onEnd(); };
+  recog.onend=()=>{ onEnd&&onEnd(); };
+  recog.start();
+  return true;
+}
+
+/* ================= 视图渲染 ================= */
+const app=document.getElementById('app');
+let view='home';
+
+function render(){
+  app.innerHTML='';
+  if(view==='home') return renderHome();
+  if(view==='lf') return renderForm('LF');
+  if(view==='hd') return renderForm('HD');
+  if(view==='query') return renderQuery();
+  if(view==='detail') return renderDetail();
+}
+
+function renderHome(){
+  const card=el('div','card');
+  card.innerHTML=`
+    <div class="modes">
+      <div class="mode lf" data-go="lf"><div class="ic">🔍</div><div class="t">我东西丢了</div><div class="d">登记丢失 · 帮你寻找</div></div>
+      <div class="mode hd" data-go="hd"><div class="ic">🎒</div><div class="t">我捡到东西</div><div class="d">上交登记 · 获取上交码</div></div>
+    </div>
+    <div style="height:12px"></div>
+    <button class="btn-orange" data-go="query">📋 查询进度 / 凭码取件</button>`;
+  card.querySelectorAll('[data-go]').forEach(n=>n.onclick=()=>{view=n.dataset.go;selected=null;render();});
+  app.appendChild(card);
+
+  // 最近动态
+  if(DB.records.length){
+    const list=el('div','card');
+    list.innerHTML='<h3>最近登记</h3>';
+    DB.records.slice(-4).reverse().forEach(r=>list.appendChild(recordRow(r)));
+    app.appendChild(list);
+  }
+}
+
+function recordRow(r){
+  const d=el('div','item');
+  const tagCls=r.status==='closed'?'closed':(r.matched?'matched':r.type.toLowerCase());
+  const statusTxt=r.status==='closed'?'已办结':(r.matched?'已匹配':(r.type==='LF'?'寻物中':'待认领'));
+  d.innerHTML=`<div class="h"><strong>${esc(r.itemName||'未填写物品')}</strong><span class="tag ${tagCls}">${statusTxt}</span></div>
+    <div class="meta">单号 ${r.no.slice(-6)} · ${esc(r.location||'地点未填')} · ${r.time}</div>`;
+  d.onclick=()=>{selected=r.id;view='detail';render();};
+  return d;
+}
+
+/* ---- 登记表单（LF/HD 共用） ---- */
+let formData={};
+function renderForm(type){
+  formData={type};
+  const isLF=type==='LF';
+  const card=el('div','card');
+  card.innerHTML=`
+    <button class="btn-ghost back" data-back>← 返回</button>
+    <h3>${isLF?'🔍 丢失登记':'🎒 拾获上交'}</h3>
+    <div class="muted">${isLF?'告诉我们你丢了什么，找到后会通知你':'请描述您捡到的物品，上交后获得上交码'}</div>
+
+    <button class="mic" id="micBtn">🎤 按住语音描述</button>
+    <div class="heard" id="heard">语音识别结果会显示在这里…</div>
+
+    <div class="divider">或手动填写</div>
+    <label>物品名称 *</label><input id="f_item" placeholder="如：黑色钱包 / 手机 / 钥匙">
+    <label>${isLF?'丢失地点':'拾获地点'} *</label><input id="f_loc" placeholder="如：地铁站A口 / 候车大厅">
+    <label>物品特征 / 描述</label><textarea id="f_desc" placeholder="颜色、品牌、内含物品等"></textarea>
+    <label>${isLF?'您的联系方式（手机号）':'拾获人联系方式'}</label><input id="f_contact" inputmode="tel" placeholder="选填，便于联系">
+    <div style="height:16px"></div>
+    <button class="${isLF?'btn-primary':'btn-green'}" id="submitBtn">${isLF?'提交丢失登记':'确认上交'}</button>`;
+  app.appendChild(card);
+
+  card.querySelector('[data-back]').onclick=()=>{view='home';render();};
+
+  const micBtn=card.querySelector('#micBtn');
+  const heard=card.querySelector('#heard');
+  micBtn.onmousedown=micBtn.ontouchstart=(e)=>{e.preventDefault();
+    micBtn.classList.add('listening'); micBtn.textContent='正在聆听，请说…'; heard.textContent='…';
+    startListen(t=>{
+      heard.textContent=t;
+      // 简单回填：把整句先放描述，尝试提取物品名（启发式）
+      document.getElementById('f_desc').value=t;
+      if(!document.getElementById('f_item').value){
+        const m=t.match(/[一-龥a-zA-Z0-9]{2,8}(?=丢了|不见了|捡到|拾到|钱包|手机|钥匙|书包|电脑|手表|雨伞|身份证)/);
+        if(m) document.getElementById('f_item').value=m[0];
+      }
+    },()=>{micBtn.classList.remove('listening');micBtn.innerHTML='🎤 按住语音描述';});
+  };
+  micBtn.onmouseup=micBtn.onmouseleave=micBtn.ontouchend=()=>{ if(recog) try{recog.stop();}catch(e){} };
+
+  card.querySelector('#submitBtn').onclick=()=>{
+    const itemName=card.querySelector('#f_item').value.trim();
+    const location=card.querySelector('#f_loc').value.trim();
+    if(!itemName||!location){ toast(card,'请填写物品名称和地点'); return; }
+    submitRecord({
+      type, itemName, location,
+      description:card.querySelector('#f_desc').value.trim(),
+      contact:card.querySelector('#f_contact').value.trim(),
+    });
+  };
+}
+
+function submitRecord(rec){
+  const full={
+    id:genId(), no:'JL'+Date.now().toString().slice(-10),
+    status:'open', matched:null, time:nowStr(),
+    handCode: rec.type==='HD'?genCode(6):null,   // 拾获上交码
+    pickCode:null, ...rec,
+  };
+  DB.records.push(full);
+  // 匹配
+  const m=findMatch(full);
+  if(m){ full.matched=m.rec.id; m.rec.matched=full.id; m.rec.status='matched'; full.status='matched'; }
+  save(DB);
+
+  const card=el('div','card');
+  const b=el('div','banner ok');
+  if(rec.type==='HD'){
+    b.innerHTML=`✅ <strong>上交成功</strong><div class="code">${full.handCode}</div>
+      <div>请凭此<b>上交码</b>向工作人员核验</div>`;
+    speak('上交成功，您的上交码是'+full.handCode.split('').join(' '));
+  }else{
+    b.innerHTML=`✅ <strong>丢失登记成功</strong><div style="margin-top:8px">单号：${full.no}</div>`+(m?'<div style="margin-top:8px;color:#92400e">🎯 系统已发现疑似匹配物品，请等待民警核对</div>':'<div class="muted" style="margin-top:8px">我们会持续为您寻找，可凭单号查询进度</div>');
+    speak('登记成功'+(m?'，已发现疑似匹配物品，请等待民警核对':''));
+  }
+  card.appendChild(b);
+  const row=el('div','row');
+  row.innerHTML='<button class="btn-ghost" data-home>返回首页</button><button class="btn-primary" data-detail">查看详情</button>';
+  row.querySelector('[data-home]').onclick=()=>{view='home';render();};
+  row.querySelector('[data-detail]').onclick=()=>{selected=full.id;view='detail';render();};
+  card.appendChild(row);
+  app.innerHTML=''; app.appendChild(card);
+}
+
+/* ---- 查询 ---- */
+function renderQuery(){
+  const card=el('div','card');
+  card.innerHTML=`
+    <button class="btn-ghost back" data-back>← 返回</button>
+    <h3>📋 查询 / 取件</h3>
+    <label>输入单号或取件码</label>
+    <input id="q_input" inputmode="numeric" placeholder="单号末几位 / 6位取件码">
+    <div style="height:12px"></div>
+    <button class="btn-orange" id="q_btn">查询</button>
+    <div id="q_result" style="margin-top:14px"></div>`;
+  app.appendChild(card);
+  card.querySelector('[data-back]').onclick=()=>{view='home';render();};
+  const doQuery=()=>{
+    const v=card.querySelector('#q_input').value.trim();
+    const res=card.querySelector('#q_result'); res.innerHTML='';
+    if(!v){res.innerHTML='<div class="banner warn">请输入单号或取件码</div>';return;}
+    const found=DB.records.find(r=>r.no.includes(v)||(r.pickCode&&r.pickCode===v)||(r.handCode&&r.handCode===v));
+    if(!found){res.innerHTML='<div class="banner err">未查到相关记录，请核对后再试</div>';return;}
+    const d=el('div'); d.appendChild(recordRow(found));
+    // 取件码核销
+    if(found.pickCode&&found.pickCode===v&&found.status!=='closed'){
+      const b=el('button','btn-green'); b.textContent='确认取件并核销'; b.style.marginTop='10px';
+      b.onclick=()=>{ found.status='closed'; found.closeTime=nowStr();
+        // 对应单也办结
+        if(found.matched){const o=DB.records.find(x=>x.id===found.matched);if(o)o.status='closed';}
+        save(DB); render(); };
+      d.appendChild(b);
+    }
+    res.appendChild(d);
+  };
+  card.querySelector('#q_btn').onclick=doQuery;
+  card.querySelector('#q_input').onkeydown=e=>{if(e.key==='Enter')doQuery();};
+
+  if(DB.records.length){
+    const all=el('div'); all.innerHTML='<label>全部记录</label>';
+    DB.records.slice().reverse().forEach(r=>all.appendChild(recordRow(r)));
+    card.appendChild(all);
+  }
+}
+
+/* ---- 详情 ---- */
+let selected=null;
+function renderDetail(){
+  const r=DB.records.find(x=>x.id===selected);
+  const card=el('div','card');
+  if(!r){card.innerHTML='<button class="btn-ghost" data-back>← 返回</button><div class="banner err">记录不存在</div>';
+    card.querySelector('[data-back]').onclick=()=>{view='home';render();}; app.appendChild(card);return;}
+
+  const isLF=r.type==='LF';
+  let matchInfo='';
+  if(r.matched){const m=DB.records.find(x=>x.id===r.matched);
+    if(m) matchInfo=`<div class="banner warn" style="margin-top:12px">🎯 已匹配到<b>${esc(m.itemName)}</b>（${m.no}），民警核对后即可${isLF?'领取':'归还'}</div>`;}
+
+  card.innerHTML=`
+    <button class="btn-ghost back" data-back>← 返回</button>
+    <div class="h" style="display:flex;justify-content:space-between;align-items:center">
+      <h3>${esc(r.itemName)}</h3>
+      <span class="tag ${r.status==='closed'?'closed':(r.matched?'matched':r.type.toLowerCase())}">
+        ${r.status==='closed'?'已办结':(r.matched?'已匹配':(isLF?'寻物中':'待认领'))}</span>
+    </div>
+    <div class="meta muted" style="margin-top:8px;line-height:1.9;font-size:14px">
+      单号：${r.no}<br>类型：${isLF?'丢失登记':'拾获上交'}<br>
+      地点：${esc(r.location||'-')}<br>特征：${esc(r.description||'-')}<br>
+      联系方式：${esc(r.contact||'-')}<br>登记时间：${r.time}
+      ${r.handCode?'<br>上交码：<b style="font-size:18px">'+r.handCode+'</b>':''}
+      ${r.pickCode?'<br>取件码：<b style="font-size:18px">'+r.pickCode+'</b>':''}
+      ${r.closeTime?'<br>办结时间：'+r.closeTime:''}
+    </div>
+    ${matchInfo}
+    <div style="height:14px"></div>`;
+
+  // 民警核对生成取件码（模拟核对动作）
+  if(r.matched&&r.status==='matched'&&isLF&&!r.pickCode){
+    const b=el('button','btn-primary'); b.textContent='民警核对 · 生成取件码';
+    b.onclick=()=>{ r.pickCode=genCode(6);
+      const m=DB.records.find(x=>x.id===r.matched); if(m)m.pickCode=r.pickCode;
+      save(DB); render(); };
+    card.appendChild(b);
+  }
+  card.querySelector('[data-back]').onclick=()=>{view='home';render();};
+  app.appendChild(card);
+}
+
+/* ================= 工具 ================= */
+function el(tag,cls){const d=document.createElement(tag);if(cls)d.className=cls;return d;}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(card,msg){
+  let b=card.querySelector('.toast-msg');
+  if(!b){b=el('div','banner err toast-msg');b.style.marginTop='12px';card.appendChild(b);}
+  b.textContent=msg;
+}
+
+document.getElementById('resetBtn').onclick=()=>{
+  if(confirm('确定清空全部演示数据？')){DB={records:[]};save(DB);view='home';render();}
+};
+
+render();
+</script>
+</body>
+</html>
