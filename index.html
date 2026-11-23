@@ -2,129 +2,457 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B1F3A">
 <title>警来帮 · 智慧寻物</title>
 <style>
-:root{--blue:#1a56db;--bg:#0f1f3d;--green:#0e9f6e;--orange:#d97706;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb}
+:root{
+  --navy-900:#0B1F3A; --navy-700:#123B6D; --navy-500:#1B4F8F;
+  --brand:#2E6BFF; --brand-soft:#EAF0FF;
+  --ok:#0E9F6E; --ok-soft:#E7F6F0;
+  --warn:#D97706; --warn-soft:#FEF3E2;
+  --ink:#111827; --ink-2:#4B5563; --muted:#8A94A6;
+  --line:#E7EBF2; --bg:#F5F7FB; --card:#FFFFFF;
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+  --shadow:0 2px 4px rgba(16,32,64,.04),0 12px 28px rgba(16,32,64,.08);
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,#0f1f3d,#1a3a6e 55%,#0f1f3d);background-attachment:fixed;min-height:100vh}
-.wrap{max-width:720px;margin:0 auto;padding:18px 15px 44px}
-header{color:#fff;text-align:center;padding:10px 0 16px}
-header .logo{font-size:30px;font-weight:800;letter-spacing:2px}
-header .sub{opacity:.85;font-size:14px;margin-top:6px}
-.searchbar{display:flex;gap:8px;margin-bottom:14px}
-.searchbar input{flex:1;padding:14px 16px;border:none;border-radius:14px;font-size:16px}
-.searchbar button{background:var(--blue);color:#fff;border:none;border-radius:14px;padding:0 22px;font-size:16px;font-weight:600}
-.tabs{display:flex;gap:8px;margin-bottom:14px}
-.tab{flex:1;text-align:center;background:rgba(255,255,255,.12);color:#fff;border-radius:12px;padding:12px;font-size:15px;font-weight:600;border:1.5px solid transparent}
-.tab.active{background:#fff;color:var(--blue)}
-.card{background:#fff;border-radius:16px;padding:8px 18px 18px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
-.item{border:1.5px solid var(--line);border-radius:13px;padding:14px;margin-top:12px}
-.item .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.item .nm{font-weight:700;font-size:17px}
-.item .cat{font-size:12px;color:var(--muted)}
-.item .meta{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7}
-.codebox{margin-top:12px;background:#eef4ff;border-radius:11px;padding:12px 14px;text-align:center}
-.codebox .lab{font-size:12px;color:var(--muted)}
-.codebox .cd{font-size:28px;font-weight:800;letter-spacing:5px;color:var(--blue);font-family:"Courier New",monospace;margin-top:2px}
-.codelookup{display:none}
-.empty{color:var(--muted);text-align:center;padding:30px 10px;font-size:14px}
-.notice{color:#fff;opacity:.8;text-align:center;font-size:12px;margin-top:16px}
-.qinput{width:100%;padding:14px 16px;border:none;border-radius:14px;font-size:20px;text-align:center;letter-spacing:6px;font-family:"Courier New",monospace}
+html,body{margin:0;padding:0}
+body{
+  font-family:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  color:var(--ink);background:var(--bg);min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(env(safe-area-inset-bottom) + 92px);
+}
+.wrap{max-width:760px;margin:0 auto}
+
+/* ---------- 顶部 ---------- */
+.hero{
+  position:relative;overflow:hidden;
+  background:linear-gradient(155deg,#0B1F3A 0%,#123B6D 52%,#1B4F8F 100%);
+  padding:calc(env(safe-area-inset-top) + 22px) 20px 74px;
+  color:#fff;
+}
+.hero::after{
+  content:"";position:absolute;right:-70px;top:-90px;width:240px;height:240px;
+  background:radial-gradient(circle,rgba(46,107,255,.42),transparent 68%);
+}
+.hero::before{
+  content:"";position:absolute;left:-60px;bottom:-110px;width:230px;height:230px;
+  background:radial-gradient(circle,rgba(14,159,110,.22),transparent 70%);
+}
+.hero-main{position:relative;z-index:2;display:flex;align-items:center;gap:14px}
+.mark{
+  width:52px;height:52px;flex:0 0 52px;border-radius:15px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);
+}
+.mark svg{width:28px;height:28px}
+.hero h1{margin:0;font-size:23px;font-weight:800;letter-spacing:.6px;line-height:1.25}
+.hero .sub{margin-top:5px;font-size:13px;color:rgba(255,255,255,.72);letter-spacing:.2px}
+.live{
+  display:inline-flex;align-items:center;gap:5px;margin-top:9px;
+  font-size:11.5px;color:rgba(255,255,255,.78);
+}
+.dot{width:6px;height:6px;border-radius:50%;background:#34D399;box-shadow:0 0 0 3px rgba(52,211,153,.18)}
+
+/* ---------- 搜索 ---------- */
+.search-card{
+  position:relative;z-index:3;margin:-46px 16px 0;
+  background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow);
+  padding:14px;
+}
+.search-box{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg);border:1.5px solid transparent;border-radius:var(--r-md);
+  padding:0 12px;height:48px;transition:border-color .18s,background .18s;
+}
+.search-box:focus-within{border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px var(--brand-soft)}
+.search-box svg{width:18px;height:18px;flex:0 0 18px;color:var(--muted)}
+.search-box input{
+  flex:1;min-width:0;border:0;outline:0;background:transparent;
+  font-size:14.5px;color:var(--ink);font-family:inherit;
+}
+.search-box input::placeholder{color:var(--muted)}
+.btn{
+  border:0;cursor:pointer;font-family:inherit;font-weight:600;
+  background:var(--brand);color:#fff;border-radius:12px;height:38px;padding:0 16px;
+  font-size:14px;transition:transform .12s,opacity .12s;
+}
+.btn:active{transform:scale(.97)}
+.btn-ghost{background:var(--brand-soft);color:var(--brand)}
+
+/* ---------- 分类 ---------- */
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 0 0}
+.chip{
+  border:1.5px solid var(--line);background:#fff;color:var(--ink-2);
+  border-radius:999px;padding:8px 6px;font-size:12.5px;font-weight:600;cursor:pointer;
+  text-align:center;white-space:nowrap;transition:all .16s;
+}
+.chip.on{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+
+/* ---------- 列表 ---------- */
+.section{padding:18px 16px 0}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px}
+.sec-head h2{margin:0;font-size:15px;font-weight:700;letter-spacing:.3px}
+.sec-head .count{font-size:12.5px;color:var(--muted)}
+.count b{color:var(--brand);font-weight:700}
+
+.list{display:grid;gap:12px}
+@media(min-width:680px){.list{grid-template-columns:1fr 1fr}}
+
+.item{
+  background:var(--card);border-radius:var(--r-md);box-shadow:var(--shadow);
+  padding:15px;display:flex;gap:13px;align-items:flex-start;
+  border-left:3px solid transparent;transition:transform .14s;
+}
+.item:active{transform:scale(.985)}
+.item .ico{
+  width:44px;height:44px;flex:0 0 44px;border-radius:12px;
+  background:var(--brand-soft);display:flex;align-items:center;justify-content:center;
+}
+.item .ico svg{width:22px;height:22px;color:var(--brand)}
+.item .body{flex:1;min-width:0}
+.item .name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.item .nm{font-size:16px;font-weight:700;letter-spacing:.2px}
+.badge{
+  font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;
+  background:var(--ok-soft);color:var(--ok);letter-spacing:.3px;
+}
+.tagline{margin-top:5px;font-size:12.5px;color:var(--muted)}
+.meta{margin-top:9px;font-size:12.5px;color:var(--ink-2);line-height:1.75}
+.loc{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.loc-t{min-width:0}
+.time{flex:0 0 auto;color:var(--muted);font-variant-numeric:tabular-nums}
+.feat{margin-top:3px}
+.meta .k{color:var(--muted)}
+.hold{
+  margin-top:10px;display:flex;align-items:center;gap:7px;
+  background:var(--warn-soft);border-radius:var(--r-sm);padding:8px 10px;
+  font-size:12.5px;color:#8A4B00;font-weight:600;
+}
+.hold svg{width:14px;height:14px;flex:0 0 14px}
+
+/* ---------- 状态 ---------- */
+.state{padding:34px 18px;text-align:center}
+.state svg{width:74px;height:74px;opacity:.45}
+.state .t{margin-top:12px;font-size:14.5px;font-weight:600;color:var(--ink-2)}
+.state .d{margin-top:6px;font-size:12.5px;color:var(--muted);line-height:1.7}
+
+/* 骨架 */
+.sk{background:var(--card);border-radius:var(--r-md);height:104px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.sk::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(240,244,250,.9),transparent);
+  transform:translateX(-100%);animation:sh 1.35s infinite;
+}
+@keyframes sh{to{transform:translateX(100%)}}
+
+/* ---------- 引导 ---------- */
+.guide{
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  background:#fff;border:1.5px dashed #D8E1F0;border-radius:var(--r-md);
+  padding:14px;margin-top:14px;transition:border-color .16s,background .16s;
+}
+.guide:active{border-color:var(--brand);background:#FBFDFF}
+.gi{width:38px;height:38px;flex:0 0 38px;border-radius:10px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center}
+.gi svg{width:20px;height:20px;color:var(--brand)}
+.gt{font-size:13.5px;font-weight:700}
+.gd{font-size:12px;color:var(--muted);margin-top:3px}
+.arrow{width:16px;height:16px;flex:0 0 16px;color:var(--muted);margin-left:auto}
+
+/* ---------- 凭码查询 ---------- */
+.pane{display:none}
+.pane.on{display:block}
+.code-card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:22px 18px}
+.code-title{text-align:center;font-size:15px;font-weight:700}
+.code-tip{text-align:center;margin-top:6px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.digits{display:flex;gap:8px;justify-content:center;margin:20px 0 4px}
+.digits input{
+  width:calc((100% - 40px)/6);max-width:48px;height:56px;
+  border:1.5px solid var(--line);border-radius:var(--r-sm);background:var(--bg);
+  text-align:center;font-size:22px;font-weight:700;color:var(--ink);
+  font-family:"SF Mono",ui-monospace,"Courier New",monospace;outline:0;
+  transition:all .15s;padding:0;
+}
+.digits input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px var(--brand-soft)}
+.digits input.filled{border-color:#C9D6EE;background:#fff}
+.code-actions{display:flex;gap:10px;margin-top:18px}
+.code-actions .btn{flex:1;height:46px;font-size:15px}
+.result{margin-top:18px}
+
+/* ---------- 底部 ---------- */
+.foot{
+  margin-top:22px;padding:0 20px 20px;
+  text-align:center;font-size:12px;color:#6B7280;line-height:1.9;
+}
+.foot .line{width:36px;height:2px;background:var(--line);margin:0 auto 14px}
+.sep{height:1px;background:var(--line);margin:22px 16px 0}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="logo">警来帮 · 智慧寻物</div>
-    <div class="sub">查询招领物品 / 凭码查询进度</div>
-  </header>
 
-  <div class="tabs">
-    <div class="tab active" id="tabList" onclick="switchTab('list')">浏览招领</div>
-    <div class="tab" id="tabCode" onclick="switchTab('code')">凭码查询</div>
-  </div>
-
-  <div id="pane-list">
-    <form class="searchbar" onsubmit="doSearch(event)">
-      <input id="q" placeholder="搜索物品名称 / 类别 / 地点">
-      <button type="submit">搜索</button>
-    </form>
-    <div class="card"><div id="list"><div class="empty">加载中…</div></div></div>
-  </div>
-
-  <div id="pane-code" style="display:none">
-    <div class="card">
-      <form onsubmit="doCode(event)">
-        <div style="padding:14px 4px 10px;color:var(--muted);font-size:14px;text-align:center">输入民警给你的 6 位查询码</div>
-        <input id="code" class="qinput" maxlength="6" inputmode="numeric" placeholder="••••••">
-        <div style="margin-top:14px"><button type="submit" style="width:100%;background:var(--orange);color:#fff;border:none;border-radius:13px;padding:14px;font-size:16px;font-weight:600">查询</button></div>
-      </form>
-      <div id="coderesult"></div>
+  <div class="hero">
+    <div class="hero-main">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l7 3v6c0 4.3-2.9 7.6-7 9-4.1-1.4-7-4.7-7-9V6l7-3z"/>
+          <path d="M9 11.6l2.1 2.1 4-4.2"/>
+        </svg>
+      </div>
+      <div>
+        <h1>警来帮 · 智慧寻物</h1>
+        <div class="sub">地铁失物招领 · 查询与领取</div>
+        <div class="live"><span class="dot"></span><span id="liveTxt">正在连接车站警务室</span></div>
+      </div>
     </div>
   </div>
 
-  <div class="notice">数据由车站警务室实时提供 · 找到物品请凭码到服务台领取</div>
+  <div class="search-card" id="paneListCard">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <circle cx="11" cy="11" r="6.6"/><path d="M16.2 16.2L20 20"/>
+      </svg>
+      <input id="q" type="search" placeholder="搜名称、类别或地点" autocomplete="off">
+      <button class="btn" id="btnSearch">搜索</button>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="pane on" id="paneList">
+    <div class="section">
+      <div class="sec-head">
+        <h2>在库待领取</h2>
+        <div class="count" id="count"></div>
+      </div>
+      <div class="list" id="list"></div>
+      <div class="guide" id="guide" onclick="switchTab('code')">
+        <div class="gi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2.2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>
+        </div>
+        <div>
+          <div class="gt">已经有查询码？</div>
+          <div class="gd">输入 6 位码，直接查存放位置与领取状态</div>
+        </div>
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane" id="paneCode">
+    <div class="section" style="padding-top:6px">
+      <div class="code-card">
+        <div class="code-title">凭查询码查进度</div>
+        <div class="code-tip">输入民警或服务台给你的 6 位码<br>可查看物品存放位置与领取状态</div>
+        <div class="digits" id="digits">
+          <input maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
+          <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
+          <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
+          <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
+          <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
+          <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
+        </div>
+        <div class="code-actions">
+          <button class="btn btn-ghost" id="btnClear">清空</button>
+          <button class="btn" id="btnCode">查询</button>
+        </div>
+        <div class="result" id="coderesult"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+  <div class="foot">
+    <div class="line"></div>
+    数据由车站警务室实时提供<br>
+    找到物品请携有效证件到服务台凭码领取<br>
+    <span id="upd" style="opacity:.7"></span>
+  </div>
+</div>
+
+<div style="position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;pointer-events:none;padding-bottom:calc(env(safe-area-inset-bottom) + 12px)">
+  <div style="display:flex;gap:6px;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:999px;padding:6px;pointer-events:auto;box-shadow:0 6px 18px rgba(16,32,64,.1)">
+    <button class="chip on" id="tabList" style="border:0;background:var(--brand);color:#fff">浏览招领</button>
+    <button class="chip" id="tabCode" style="border:0;background:transparent;color:var(--ink-2)">凭码查询</button>
+  </div>
 </div>
 
 <script>
-const API = ""; // 同域 Pages Functions
-const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const API = "https://jlb-api.anjizhan.cn";                       // 同域；换域名部署时改成后端地址，如 "https://api.example.com"
+const esc = s => (s == null ? "" : String(s)).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const ICONS = {
+  "箱包": '<path d="M6 8h12v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M9 12h6"/>',
+  "证件": '<rect x="3.2" y="5.5" width="17.6" height="13" rx="2.4"/><circle cx="9" cy="11.4" r="2.2"/><path d="M13.2 11h4.4M13.2 14.2h4.4M6 14.8c.8-1.6 1.8-2.4 3-2.4s2.2.8 3 2.4"/>',
+  "电子": '<rect x="7" y="2.6" width="10" height="18.8" rx="2.4"/><path d="M10.6 5.4h2.8M11 19h2"/>',
+  "雨伞": '<path d="M12 3.2c4.1 0 7.4 3 7.4 6.8H4.6C4.6 6.2 7.9 3.2 12 3.2z"/><path d="M12 10v7a2.2 2.2 0 0 0 4.4 0"/>',
+  "钥匙": '<circle cx="8" cy="15" r="3.6"/><path d="M10.6 12.4L19 4M15.6 7.4l2 2M17.6 5.4l2 2"/>',
+  "其他": '<path d="M4 9.2l8-4.6 8 4.6-8 4.6-8-4.6z"/><path d="M4 9.2v6l8 4.6 8-4.6v-6"/>'
+};
+const ico = c => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[c] || ICONS["其他"]}</svg>`;
+
+const CATS = ["全部","箱包","证件","电子","雨伞","钥匙","其他"];
+let ALL = [], curCat = "全部";
 
 async function api(path){
-  const r = await fetch(API+path);
-  if(!r.ok) throw new Error(r.status);
+  const r = await fetch(API + path, {cache:"no-store"});
+  if(!r.ok) throw new Error("HTTP "+r.status);
   return r.json();
 }
 
-function renderItem(it, showCode){
-  return `<div class="item">
-    <div class="top">
-      <div><div class="nm">${esc(it.item_name)}</div><div class="cat">${esc(it.category||"")} ${it.color?"· "+esc(it.color):""}</div></div>
-      ${it.status==="claimed"?'<span style="color:#0e9f6e;font-weight:700;font-size:13px">已领取</span>':""}
+function card(it){
+  const cat = (it.category || "其他").trim();
+  const claimed = it.status === "claimed";
+  return `<div class="item" style="${claimed?'border-left-color:var(--ok);opacity:.82':''}">
+    <div class="ico">${ico(cat)}</div>
+    <div class="body">
+      <div class="name-row">
+        <div class="nm">${esc(it.item_name)}</div>
+        ${claimed?'<span class="badge">已领取</span>':''}
+      </div>
+      <div class="tagline">${esc(cat)}${it.color ? " · " + esc(it.color) : ""}</div>
+      <div class="meta">
+        <div class="loc">
+          <span class="loc-t">${it.found_location ? '<span class="k">拾获</span> ' + esc(it.found_location) : ""}</span>
+          <span class="time">${it.found_time ? esc(fmtTime(it.found_time)) : ""}</span>
+        </div>
+        ${it.features ? '<div class="feat"><span class="k">特征</span> ' + esc(it.features) + '</div>' : ""}
+      </div>
+      ${it.locker ? `<div class="hold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9"/></svg>
+        存放 ${esc(it.locker)}
+      </div>` : ""}
     </div>
-    <div class="meta">
-      ${it.found_location?"📍 "+esc(it.found_location):""} ${it.found_time?"· "+esc(it.found_time):""}<br>
-      ${it.features?esc(it.features):""}
-      ${it.locker?"<br>请至："+esc(it.locker):""}
-    </div>
-    ${showCode?`<div class="codebox"><div class="lab">你的查询/取件码</div><div class="cd">${esc(it.code)}</div></div>`:""}
   </div>`;
 }
 
-async function loadList(q){
-  const box=document.getElementById("list");
-  try{
-    const path="/api/items"+(q?"?q="+encodeURIComponent(q):"");
-    const {items}=await api(path);
-    box.innerHTML = items.length ? items.map(it=>renderItem(it,false)).join("")
-      : '<div class="empty">没有找到相关物品<br>换个关键词试试，或到服务台咨询</div>';
-  }catch(err){ box.innerHTML='<div class="empty">暂时无法加载数据，请稍后再试或联系服务台</div>'; }
+function fmtTime(t){
+  if(!t) return "";
+  const m = String(t).match(/(\d{4})-(\d{2})-(\d{2})(T(\d{2}):(\d{2}))?/);
+  if(!m) return t;
+  const today = new Date();
+  const sameDay = m[1] == today.getFullYear() && m[2] == String(today.getMonth()+1).padStart(2,"0") && m[3] == String(today.getDate()).padStart(2,"0");
+  return sameDay ? `今天 ${m[5]}:${m[6]}` : `${m[2]}-${m[3]} ${m[5]||""}${m[6]?":"+m[6]:""}`;
 }
 
-function doSearch(e){ e.preventDefault(); loadList(document.getElementById("q").value.trim()); }
+function renderList(){
+  const box = document.getElementById("list");
+  const rows = curCat === "全部" ? ALL : ALL.filter(x => (x.category||"其他").trim() === curCat);
+  document.getElementById("count").innerHTML = rows.length ? `<b>${rows.length}</b> 件在库` : "";
+  if(!rows.length){
+    box.innerHTML = `<div class="state" style="grid-column:1/-1">
+      ${emptySvg()}
+      <div class="t">没有找到相关物品</div>
+      <div class="d">换个关键词试试<br>或到车站服务台咨询</div>
+    </div>`;
+    return;
+  }
+  box.innerHTML = rows.map(card).join("");
+}
 
-async function doCode(e){
-  e.preventDefault();
-  const code=document.getElementById("code").value.trim();
-  const box=document.getElementById("coderesult");
-  if(code.length!==6){ box.innerHTML='<div class="empty">请输入 6 位码</div>'; return; }
-  box.innerHTML='<div class="empty">查询中…</div>';
+function emptySvg(){
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+    <rect x="3.2" y="7.6" width="17.6" height="12" rx="2.4"/><path d="M3.2 11.4h17.6M8.4 7.6V5.4h7.2v2.2"/>
+  </svg>`;
+}
+
+async function load(q){
+  const box = document.getElementById("list");
+  box.innerHTML = `<div class="sk"></div><div class="sk"></div>`;
   try{
-    const {items}=await api("/api/items?code="+encodeURIComponent(code));
-    box.innerHTML = items.length ? items.map(it=>renderItem(it,true)).join("")
-      : '<div class="empty">没有该码对应的记录，请核对后再试</div>';
-  }catch(err){ box.innerHTML='<div class="empty">查询失败，请稍后再试</div>'; }
+    const {items} = await api("/api/items" + (q ? "?q=" + encodeURIComponent(q) : ""));
+    ALL = items || [];
+    document.getElementById("liveTxt").textContent = "已连接 · 与车站警务室实时同步";
+    document.getElementById("upd").textContent = "更新于 " + new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});
+    renderList();
+  }catch(e){
+    document.getElementById("liveTxt").textContent = "连接中断，请下拉刷新或稍后重试";
+    box.innerHTML = `<div class="state" style="grid-column:1/-1">
+      ${emptySvg()}
+      <div class="t">暂时无法加载</div>
+      <div class="d">请检查网络后重试<br>或到服务台查询</div>
+    </div>`;
+  }
+}
+
+function buildChips(){
+  document.getElementById("chips").innerHTML = CATS.map(c =>
+    `<div class="chip${c===curCat?" on":""}" data-c="${c}">${c}</div>`).join("");
+  document.querySelectorAll("#chips .chip").forEach(el => {
+    el.onclick = () => { curCat = el.dataset.c; buildChips(); renderList(); };
+  });
+}
+
+/* 6 位码 */
+const digits = () => [...document.querySelectorAll("#digits input")];
+function codeVal(){ return digits().map(i => i.value).join(""); }
+function setupDigits(){
+  digits().forEach((inp, i) => {
+    inp.addEventListener("input", () => {
+      inp.value = inp.value.replace(/\D/g,"").slice(0,1);
+      inp.classList.toggle("filled", !!inp.value);
+      if(inp.value && i < 5) digits()[i+1].focus();
+      if(codeVal().length === 6) doCode();
+    });
+    inp.addEventListener("keydown", e => {
+      if(e.key === "Backspace" && !inp.value && i > 0) digits()[i-1].focus();
+    });
+
+    inp.addEventListener("paste", e => {
+      const t = (e.clipboardData||window.clipboardData).getData("text").replace(/\D/g,"").slice(0,6);
+      if(!t) return;
+      e.preventDefault();
+      digits().forEach((d,k) => { d.value = t[k] || ""; d.classList.toggle("filled", !!t[k]); });
+      digits()[Math.min(t.length,5)].focus();
+      if(t.length === 6) doCode();
+    });
+  });
+}
+
+async function doCode(){
+  const code = codeVal(), box = document.getElementById("coderesult");
+  if(code.length !== 6){ box.innerHTML = `<div class="state"><div class="t">请输入 6 位查询码</div></div>`; return; }
+  box.innerHTML = `<div class="sk" style="height:96px;margin-top:6px"></div>`;
+  try{
+    const {items} = await api("/api/items?code=" + encodeURIComponent(code));
+    if(!items || !items.length){
+      box.innerHTML = `<div class="state"><div class="t">没有查到这条记录</div><div class="d">请核对查询码，或到服务台人工查询</div></div>`;
+      return;
+    }
+    box.innerHTML = items.map(card).join("");
+  }catch(e){
+    box.innerHTML = `<div class="state"><div class="t">查询失败</div><div class="d">请稍后重试</div></div>`;
+  }
 }
 
 function switchTab(t){
-  document.getElementById("tabList").classList.toggle("active",t==="list");
-  document.getElementById("tabCode").classList.toggle("active",t==="code");
-  document.getElementById("pane-list").style.display=t==="list"?"block":"none";
-  document.getElementById("pane-code").style.display=t==="code"?"block":"none";
+  document.getElementById("paneList").classList.toggle("on", t==="list");
+  document.getElementById("paneCode").classList.toggle("on", t==="code");
+  document.getElementById("paneListCard").style.display = t==="list" ? "" : "none";
+  const a = document.getElementById("tabList"), b = document.getElementById("tabCode");
+  a.style.background = t==="list" ? "var(--brand)" : "transparent";
+  a.style.color = t==="list" ? "#fff" : "var(--ink-2)";
+  b.style.background = t==="code" ? "var(--brand)" : "transparent";
+  b.style.color = t==="code" ? "#fff" : "var(--ink-2)";
+  if(t === "code") setTimeout(() => digits()[0].focus(), 60);
 }
 
-loadList("");
+document.getElementById("btnSearch").onclick = () => load(document.getElementById("q").value.trim());
+document.getElementById("q").addEventListener("keydown", e => { if(e.key === "Enter") load(e.target.value.trim()); });
+document.getElementById("btnCode").onclick = doCode;
+document.getElementById("btnClear").onclick = () => {
+  digits().forEach(d => { d.value = ""; d.classList.remove("filled"); });
+  document.getElementById("coderesult").innerHTML = "";
+  digits()[0].focus();
+};
+document.getElementById("tabList").onclick = () => switchTab("list");
+document.getElementById("tabCode").onclick = () => switchTab("code");
+
+buildChips();
+setupDigits();
+load("");
 </script>
 </body>
 </html>
